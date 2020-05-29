@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const dbRead = require('../middleware/readDB')
+const textFile = process.cwd() + '/database/usersDatabase.txt';
 
 
 
@@ -19,7 +20,7 @@ router.get('/', dbRead, (req, res) => {
 });
 
 
-router.get('/:id', dbRead, validateReq, (req, res) => {
+router.get('/:id', dbRead, validDB, (req, res) => {
 
         if (!req.dbData.movies) {
             
@@ -60,7 +61,21 @@ router.get('/:id', dbRead, validateReq, (req, res) => {
 });
 
 //post a movie
-router.post('/', (req, res) => {
+router.post('/', dbRead, validNewMovie, (req, res) => {
+
+    newDataBaseData = req.dbData;
+
+    newDataBase.movies.push(req.body);
+
+    newDataBaseData = JSON.stringify(newDataBaseData);
+
+    fs.writeFileSync(textFile, newDataBaseData);
+
+    res.json(200).json({
+        status: 200,
+        message: 'posted successfully',
+        new_movie: 'movieObj'
+    })
 
 });
 
@@ -70,7 +85,7 @@ router.patch('/', (req, res) => {
 });
 
 //delete a movie
-router.delete('/:id', dbRead, validateReq, (req, res) => {
+router.delete('/:id', dbRead, validDB, (req, res) => {
 
   let databaseData = req.dbData;
 
@@ -84,7 +99,7 @@ router.delete('/:id', dbRead, validateReq, (req, res) => {
   console.log(databaseData.movies);
 
 
-  let textFile = process.cwd() + '/database/usersDatabase.txt';
+  
 
   fs.writeFileSync(textFile, databaseData)
 
@@ -98,7 +113,7 @@ router.delete('/:id', dbRead, validateReq, (req, res) => {
 });
 
 
-function validateReq(req, res, next){
+function validDB(req, res, next){
 
     if (!req.dbData.movies) {
             
@@ -131,6 +146,74 @@ function validateReq(req, res, next){
   req.found = moviesCollection[movieID-1];
 
     next()
+}
+
+
+function validNewMovie(req, res, next) {
+
+    let missingkeys = [];
+
+
+    //get the new movie in a JS object
+
+    console.log(req.body)
+
+    //check for title, release, availabel,, imdbLink, img
+
+    const { title: t, release: r, available: a, imdbLink: imdb, img: img } = req.body,
+
+    newMovObj = {
+        title: t,
+        release: r,
+        available: a,
+        imdbLink: imdb,
+        img: img
+    };
+
+        let bodyLength = Object.keys(req.body).length;
+
+        newMovObjLength = Object.keys(newMovObj).length;
+
+    if (bodyLength < newMovObjLength || bodyLength > newMovObjLength + 20) {
+
+        return res.status(400).json({
+                status: 400,
+                message: 'Bad Request, there were too few or too many key/value pairs',
+                req_body_length: bodyLength,
+                required_body_length: newMovObjLength
+        });
+        
+        
+    }
+
+
+    for (const k in newMovObj) {
+        if ( newMovObj[k] == undefined ) {
+
+            missingkeys.push(k)
+            
+        }
+    }
+
+    if (missingKeys.length > 0) {
+        
+       return res.status(400).json({
+            status: 400,
+            error: 'Missing Keys',
+            message: `The request body was missing the keys: ${missingKeys}`
+        })
+
+    }
+
+
+    req.body = newMovObj;
+
+
+    //make sure user data is valid
+        //if respond with client error status code
+
+    next()
+
 }
 
 

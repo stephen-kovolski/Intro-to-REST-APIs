@@ -4,8 +4,8 @@
   "description": "This repo contains my first work with the backend of REST APIs",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "devstart": "nodemon app.js"
+    "start": "nodemon"
+    
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "morgan": "^1.10.0",
     "nodemon": "^2.0.4"
   }
 }
